@@ -16,12 +16,12 @@ import android.view.View
 class SnakeGameView(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
 
     private val paint = Paint()  // Herramienta de dibujo
-    private val snakeGameEngine = SnakeGameEngine(20, 20) // Lógica del juego con una matriz de 20x20
+    private val snakeGameEngine = SnakeGameEngine(15, 25) // Lógica del juego con una matriz de 20x20
     private val handler = Handler(Looper.getMainLooper()) // Handler para el movimiento automático
-    private val updateInterval = 300L // Tiempo en milisegundos para mover la serpiente (0.3 segundos)
+    private val updateInterval = 230L  // Tiempo en milisegundos para mover la serpiente (0.3 segundos)
 
     init {
-        paint.color = Color.GREEN // Configurar el color de la serpiente
+        paint.color = Color.BLACK // Configurar el color de la serpiente
         startGame() // Iniciar el juego
     }
 
@@ -71,36 +71,47 @@ class SnakeGameView(context: Context, attrs: AttributeSet? = null) : View(contex
             paint
         )
         // Restaurar el color de la serpiente
-        paint.color = Color.GREEN
+        paint.color = Color.BLACK
     }
 
     // Método que detecta toques en la pantalla para cambiar la dirección de la serpiente
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (event.action == MotionEvent.ACTION_DOWN) {
-            // Obtener las coordenadas del toque
             val x = event.x
             val y = event.y
             val screenWidth = width
             val screenHeight = height
 
-            // Determinar la dirección de la serpiente según la parte de la pantalla tocada
-            if (x < screenWidth / 3) {
-                // Parte izquierda de la pantalla -> Cambiar a dirección izquierda
-                snakeGameEngine.setDirection(Direction.LEFT)
-            } else if (x > 2 * screenWidth / 3) {
-                // Parte derecha de la pantalla -> Cambiar a dirección derecha
-                snakeGameEngine.setDirection(Direction.RIGHT)
-            } else if (y < screenHeight / 3) {
-                // Parte superior de la pantalla -> Cambiar a dirección arriba
-                snakeGameEngine.setDirection(Direction.UP)
-            } else if (y > 2 * screenHeight / 3) {
-                // Parte inferior de la pantalla -> Cambiar a dirección abajo
-                snakeGameEngine.setDirection(Direction.DOWN)
+            // Dividir la pantalla en 4 áreas según la imagen
+            val leftArea = screenWidth / 3
+            val rightArea = 2 * screenWidth / 3
+            val topArea = screenHeight / 4
+            val bottomArea = 3 * screenHeight / 4
+
+            // Lógica de los toques según la imagen proporcionada
+            when {
+                // Área superior (ARRIBA)
+                y < topArea.toFloat() -> {
+                    snakeGameEngine.setDirection(Direction.UP)
+                }
+                // Área inferior (ABAJO)
+                y > bottomArea.toFloat() -> {
+                    snakeGameEngine.setDirection(Direction.DOWN)
+                }
+                // Área izquierda (IZQUIERDA)
+                x < leftArea.toFloat() && y in topArea.toFloat()..bottomArea.toFloat() -> {
+                    snakeGameEngine.setDirection(Direction.LEFT)
+                }
+                // Área derecha (DERECHA)
+                x > rightArea.toFloat() && y in topArea.toFloat()..bottomArea.toFloat() -> {
+                    snakeGameEngine.setDirection(Direction.RIGHT)
+                }
             }
         }
         return true
     }
+
 
     // Mostrar un diálogo cuando el juego termine (cuando la serpiente muera)
     private fun showGameOverDialog() {
